@@ -1,2 +1,2 @@
 # malloy
-same example of malloy
+some example of malloy
