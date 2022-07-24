@@ -1,0 +1,70 @@
+sql: fact_source is ||
+        SELECT "red" as color,"Gernamy" as state,1 as Qty_sold,cast("2021-01-01" as date) as date
+        UNION ALL SELECT "red", "USA",1,"2021-01-04" 
+        UNION ALL SELECT "black", "Japan",1,"2021-01-02" 
+        UNION ALL SELECT "yellow", "canada",2,"2021-01-15" 
+      ;;
+
+sql: dim1_source_ is ||
+        SELECT "red" as color, "Vendor1" as Vendor
+        UNION ALL SELECT "black", "Vendor2"
+        UNION ALL SELECT "yellow", "Vendor3"
+      ;;
+
+sql: dim2_source_ is ||
+        SELECT "Gernamy" as state,"europe" as continent
+        UNION ALL SELECT "USA", "america"
+        UNION ALL SELECT "Japan", "asia"
+        UNION ALL SELECT "canada", "america"
+        UNION ALL SELECT "Tunisia", "africa"
+      ;;
+source: Actual is from_sql(fact_source)
+{
+  join_one: dim_color is from_sql(dim1_source_){
+  primary_key: color
+                                }
+                             with color
+  join_one: dim_state is from_sql(dim2_source_){
+                             primary_key: state
+                          }
+            with state
+  measure : Quantity is Qty_sold.sum()
+            red is Quantity { where:  color = 'red' } 
+            black is Quantity { where:  color = 'BLACK' } 
+            red_or_black is Quantity { where:  color = 'red' or  color = 'black'}
+  
+}
+
+sql: budget_source is ||
+        SELECT "Gernamy" as state,10 as Qty_Budget
+        UNION ALL SELECT "USA",19
+        UNION ALL SELECT  "Japan",12
+        UNION ALL SELECT  "canada",20 
+      ;;
+source: Budget is from_sql(budget_source)
+{
+  
+  join_one: dim_state is from_sql(dim2_source_){
+                             primary_key: state
+                          }
+            with state
+  measure : Budget is Qty_Budget.sum()
+            
+
+   
+}
+Query: Actual_by_state is Actual -> {
+  aggregate:Quantity
+  group_by : dim_state.continent
+}
+
+Query: Budget_by_state is Budget -> {
+  aggregate:Budget
+  group_by : dim_state.continent
+}
+
+/*
+* want to calculated a measure Percentage_sold : Actual/Budget groped by continent 
+* as it is the common dimension between the two tables , I don't think Malloy can
+* result merge betwen two independant sources 
+*/
