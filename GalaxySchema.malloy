@@ -1,3 +1,4 @@
+-- defining the data as a small reproducible example
 sql: actual_source is ||
         SELECT "red" as color,"Gernamy" as state,1 as Qty_sold,cast("2021-01-01" as date) as date
         UNION ALL SELECT "red", "USA",1,"2021-01-04" 
@@ -19,6 +20,14 @@ sql: dim2_source_ is ||
         UNION ALL SELECT "Tunisia", "africa"
         UNION ALL SELECT "China", "asia"
       ;;
+
+sql: budget_source is ||
+        SELECT "Gernamy" as state,10 as Qty_Budget
+        UNION ALL SELECT "USA",19
+        UNION ALL SELECT  "Japan",12
+        UNION ALL SELECT  "canada",20 
+        UNION ALL SELECT  "Tunisia",30 
+      ;;
 source: Actual is from_sql(actual_source)
 {
   join_one: dim_color is from_sql(dim1_source_){
@@ -36,13 +45,6 @@ source: Actual is from_sql(actual_source)
   
 }
 
-sql: budget_source is ||
-        SELECT "Gernamy" as state,10 as Qty_Budget
-        UNION ALL SELECT "USA",19
-        UNION ALL SELECT  "Japan",12
-        UNION ALL SELECT  "canada",20 
-        UNION ALL SELECT  "Tunisia",30 
-      ;;
 source: Budget is from_sql(budget_source)
 {
   
@@ -50,12 +52,8 @@ source: Budget is from_sql(budget_source)
                              primary_key: state
                           }
             with state
-  measure : Budget is Qty_Budget.sum()
-            
-
-   
+  measure : Budget is Qty_Budget.sum()  
 }
-
 
 Query: Actual_by_state is Actual -> {
   aggregate:Quantity
@@ -68,7 +66,7 @@ Query: Budget_by_state is Budget -> {
 }
 
 
-query: merged is from_sql(dim2_source_) {
+query: merge_results is from_sql(dim2_source_) {
    join_one: q2 is from(->Budget_by_state) with state
    join_one: q3 is from(->Actual_by_state) with state
    measure : progress is q3.Quantity/q2.Budget
