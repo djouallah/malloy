@@ -1,8 +1,8 @@
-sql: fact_source is ||
+sql: actual_source is ||
         SELECT "red" as color,"Gernamy" as state,1 as Qty_sold,cast("2021-01-01" as date) as date
         UNION ALL SELECT "red", "USA",1,"2021-01-04" 
         UNION ALL SELECT "black", "Japan",1,"2021-01-02" 
-        UNION ALL SELECT "yellow", "canada",2,"2021-01-15" 
+        UNION ALL SELECT "black", "China",1,"2021-01-02" 
       ;;
 
 sql: dim1_source_ is ||
@@ -17,8 +17,9 @@ sql: dim2_source_ is ||
         UNION ALL SELECT "Japan", "asia"
         UNION ALL SELECT "canada", "america"
         UNION ALL SELECT "Tunisia", "africa"
+        UNION ALL SELECT "China", "asia"
       ;;
-source: Actual is from_sql(fact_source)
+source: Actual is from_sql(actual_source)
 {
   join_one: dim_color is from_sql(dim1_source_){
   primary_key: color
@@ -40,6 +41,7 @@ sql: budget_source is ||
         UNION ALL SELECT "USA",19
         UNION ALL SELECT  "Japan",12
         UNION ALL SELECT  "canada",20 
+        UNION ALL SELECT  "Tunisia",30 
       ;;
 source: Budget is from_sql(budget_source)
 {
@@ -53,18 +55,23 @@ source: Budget is from_sql(budget_source)
 
    
 }
+
+
 Query: Actual_by_state is Actual -> {
   aggregate:Quantity
-  group_by : dim_state.continent
+  group_by : dim_state.state
 }
 
 Query: Budget_by_state is Budget -> {
   aggregate:Budget
-  group_by : dim_state.continent
+  group_by : dim_state.state
 }
 
-/*
-* want to calculated a measure Percentage_sold : Actual/Budget groped by continent 
-* as it is the common dimension between the two tables , I don't think Malloy can
-* result merge betwen two independant sources 
-*/
+
+query: merged is from_sql(dim2_source_) {
+   join_one: q2 is from(->Budget_by_state) with state
+   join_one: q3 is from(->Actual_by_state) with state
+   measure : progress is q3.Quantity/q2.Budget
+} ->{
+  project: state, q2.Budget,q3.Quantity,progress
+}
