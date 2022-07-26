@@ -1,0 +1,40 @@
+source:Model is table('testing-bi-engine.starschema.Nest_View_Multi_Level_MV')
+{
+dimension : contractor_dim is L2.contractor
+            _year is L2.L3.`date`.year
+            
+measure : Budget is L2.budgethours.sum()
+          Actual is L2.L3.L4.actualhours.sum()
+          Forecast is L2.L3.forecast.sum()
+
+
+
+Query : total is {
+    aggregate : Budget,Actual,Forecast
+           
+                     }
+
+
+Query : by_category is {
+    group_by : category
+    aggregate : Budget,Actual,Forecast
+           
+                     }
+
+Query : by_year is {
+    group_by : _year
+    aggregate : Budget,Actual,Forecast
+           
+                     }
+                  
+Query : by_year_nested is {
+    aggregate : Budget
+           nest : date_ is {group_by: _year
+           aggregate : Actual,Forecast
+                     }
+                  } 
+Query : flat is  by_year_nested ->{
+                   project: Budget,date_._year,date_.Actual, 
+                            progress is date_.Actual/Budget
+}
+}

@@ -1,0 +1,17 @@
+
+
+source:budget is table('duckdb:/Users/mimoune.djouallah/Desktop/malloy/duck/Data/nested.parquet'){
+
+dimension : date_dim is actual.`date`.year
+measure :
+ actual_sum is actual.actualhours.sum()
+ budget is budgethours.sum()
+ Progress is actual_sum/budget
+ count_rows is count()
+ Query : test is  {
+   group_by : category
+   aggregate: budget, actual_sum,Progress
+ 
+}
+
+}

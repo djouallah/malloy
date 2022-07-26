@@ -1,0 +1,22 @@
+--! styles test.styles.json
+source: names_table is table('duckdb:/Users/mimoune.djouallah/Desktop/lineitem/*/*.parquet')
+{
+  measure : Quantity is IFNULL(L_QUANTITY.sum(), 0)
+            Quantity_RETURNFLAG_A is Quantity { where:  L_RETURNFLAG = 'A' }
+
+  
+   Query: main_Query_ is {
+              group_by : L_RETURNFLAG
+              aggregate : Quantity,Quantity_RETURNFLAG_A                          
+                             }
+    Query: nested is {
+        aggregate:main_Query_
+        nest : Quantity_RETURNFLAG_A }
+
+   
+    Query: main_Query_ is {
+              group_by : L_RETURNFLAG
+              aggregate : Quantity,Quantity_RETURNFLAG_A                          
+                             }
+     
+}
