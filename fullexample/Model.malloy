@@ -1,0 +1,17 @@
+--! styles report.json
+source:Model is table('duckdb:data.parquet')
+{
+
+            
+measure : _Mw is Mw.sum()
+
+
+Query : By_Mw is {
+    group_by : Technology,Region,hourminute
+    aggregate : _Mw
+    where : Region !=null
+    limit : 100000
+           
+                     }
+                  
+}
