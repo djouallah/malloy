@@ -1,0 +1,42 @@
+{
+  "By_Mw" : {
+    "renderer": "vega",
+    "spec_name": "grid_line"
+  },
+  "grid_line": {
+    "renderer":"vega",
+    "spec": {
+      "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+      "height": 50,
+      "data": [],
+      "mark": "area",
+      "encoding": {
+        "x": {
+          "field": "#{3}",
+          "type": "temporal",
+          "axis": { "grid": false }
+        },
+        "y": {
+          "field": "#{4}",
+          "type": "quantitative",
+          "axis": { "grid": false },
+          "title": null
+        },
+        "color": {
+          "field": "#{1}",
+          "type": "nominal",
+          "legend": null
+        },
+        "row": {
+          "field": "#{1}",
+          "type": "nominal"
+        },
+        "column": {
+          "field": "#{2}",
+          "type": "nominal"
+        }
+      }
+    }
+  }
+  
+}
