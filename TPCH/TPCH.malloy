@@ -1,22 +1,40 @@
 -- source data at https://drive.google.com/drive/folders/1mZC3NuPBZC4mjP3_kH18c9fLrv8ME7RU
 -- Malloy file require a Visual studio extension  https://marketplace.visualstudio.com/items?itemName=malloydata.malloy-vscode
+-- Lineitem parquet file contains 59 Million records, you can just duplicate the file to increase the data size for testing.
 source:lineitem is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/lineitem/*.parquet')
 { 
 
-  join_one: orders is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/orders.parquet') on orders.O_ORDERKEY = L_ORDERKEY
-  join_one: customer is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/customer.parquet') on customer.C_CUSTKEY = orders.O_CUSTKEY
-  join_one: nation is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/nation.parquet') on nation.N_NATIONKEY = customer.C_NATIONKEY
-  join_one: region is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/region.parquet') on  region.R_REGIONKEY =nation.N_REGIONKEY
+  join_one: orders is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/orders.parquet')
+                    on orders.O_ORDERKEY = L_ORDERKEY
+  join_one: customer is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/customer.parquet')
+                     on customer.C_CUSTKEY = orders.O_CUSTKEY
+  join_one: nation is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/nation.parquet')
+                    on nation.N_NATIONKEY = customer.C_NATIONKEY
+  join_one: region is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/region.parquet')
+                    on  region.R_REGIONKEY =nation.N_REGIONKEY
 
-  measure : _count is count()
+  measure :   _count is count()
               _count_all is all(_count)
               _Ratio is _count/_count_all
+              sum_qty is SUM(L_QUANTITY) 
+              sum_base_price is SUM(L_EXTENDEDPRICE)
+              sum_disc_price is SUM(L_EXTENDEDPRICE * (1 - L_DISCOUNT)) 
+              sum_charge is SUM(L_EXTENDEDPRICE * (1 - L_DISCOUNT) * (1 + L_TAX)) 
+              avg_qty is AVG(L_QUANTITY) 
+              avg_price is AVG(L_EXTENDEDPRICE) 
+              avg_disc is AVG(L_DISCOUNT) 
 
 
+Query: TPCH1 is {
+    
+    group_by : L_RETURNFLAG,
+               L_LINESTATUS
+    aggregate: sum_qty,sum_base_price,sum_disc_price,sum_charge,avg_qty,avg_price,avg_disc,_count
+                 }
 Query : by_flag is {
     group_by : L_RETURNFLAG
     aggregate :_count_all,_count,_Ratio
-}
+                   }
 
 Query : by_shipmod_flag is {
     aggregate :_count_all
@@ -25,11 +43,11 @@ Query : by_shipmod_flag is {
               nest : yyy is {
                     group_by :nation.N_NAME
                         nest: by_flag
-}
+                             }
 
-}
+                        }
   
-}
+                            }
 
 
 

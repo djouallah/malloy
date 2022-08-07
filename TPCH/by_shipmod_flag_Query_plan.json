@@ -1,0 +1,400 @@
+{
+   "name":  "Query", 
+   "result": 113.465769,
+   "timing": 113.465769,
+   "cardinality": 1,
+   "extra-info": "\nPRAGMA enable_profiling='json';\n\nPRAGMA profile_output='./0-Code/malloy.json';\nWITH __stage0 AS (\n  SELECT\n    group_set,\n    MAX((CASE WHEN group_set=0 THEN\n      COUNT( 1)\n      END)) OVER () as \"_count_all__1\",\n    CASE WHEN group_set IN (2,3,4) THEN\n      region_0.\"R_NAME\"\n      END as \"R_NAME__2\",\n    CASE WHEN group_set IN (3,4) THEN\n      nation_0.\"N_NAME\"\n      END as \"N_NAME__3\",\n    CASE WHEN group_set=4 THEN\n      lineitem.\"L_RETURNFLAG\"\n      END as \"L_RETURNFLAG__4\",\n    MAX((CASE WHEN group_set=3 THEN\n      COUNT( 1)\n      END)) OVER (PARTITION BY CASE WHEN group_set IN (3,4) THEN\n      nation_0.\"N_NAME\"\n      END, CASE WHEN group_set IN (2,3,4) THEN\n      region_0.\"R_NAME\"\n      END) as \"_count_all__4\",\n    CASE WHEN group_set=4 THEN\n      COUNT( 1)\n      END as \"_count__4\",\n    (CASE WHEN group_set=4 THEN\n      COUNT( 1)\n      END)*1.0/(MAX((CASE WHEN group_set=3 THEN\n      COUNT( 1)\n      END)) OVER (PARTITION BY CASE WHEN group_set IN (3,4) THEN\n      nation_0.\"N_NAME\"\n      END, CASE WHEN group_set IN (2,3,4) THEN\n      region_0.\"R_NAME\"\n      END)) as \"_Ratio__4\"\n  FROM '/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/lineitem/*.parquet' as lineitem\n  LEFT JOIN '/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/orders.parquet' AS orders_0\n    ON orders_0.\"O_ORDERKEY\"=lineitem.\"L_ORDERKEY\"\n  LEFT JOIN '/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/customer.parquet' AS customer_0\n    ON customer_0.\"C_CUSTKEY\"=orders_0.\"O_CUSTKEY\"\n  LEFT JOIN '/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/nation.parquet' AS nation_0\n    ON nation_0.\"N_NATIONKEY\"=customer_0.\"C_NATIONKEY\"\n  LEFT JOIN '/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/region.parquet' AS region_0\n    ON region_0.\"R_REGIONKEY\"=nation_0.\"N_REGIONKEY\"\n  CROSS JOIN (SELECT UNNEST(GENERATE_SERIES(0,4,1)) as group_set  ) as group_set\n  GROUP BY 1,3,4,5\n)\n, __stage1 AS (\n  SELECT \n    CASE WHEN group_set=4 THEN 3  ELSE group_set END as group_set,\n    FIRST(\"_count_all__1\") FILTER (WHERE \"_count_all__1\" IS NOT NULL) as \"_count_all__1\",\n    CASE WHEN group_set IN (2,3,4) THEN\n      \"R_NAME__2\"\n      END as \"R_NAME__2\",\n    CASE WHEN group_set IN (3,4) THEN\n      \"N_NAME__3\"\n      END as \"N_NAME__3\",\n    COALESCE(LIST({\n      \"L_RETURNFLAG\": \"L_RETURNFLAG__4\", \n      \"_count_all\": \"_count_all__4\", \n      \"_count\": \"_count__4\", \n      \"_Ratio\": \"_Ratio__4\"}  ORDER BY  \"_count_all__4\" desc NULLS LAST) FILTER (WHERE group_set=4),[]) as \"by_flag__3\"\n  FROM __stage0\n  WHERE group_set NOT IN (0)\n  GROUP BY 1,3,4\n)\n, __stage2 AS (\n  SELECT \n    CASE WHEN group_set=3 THEN 2  ELSE group_set END as group_set,\n    FIRST(\"_count_all__1\") FILTER (WHERE \"_count_all__1\" IS NOT NULL) as \"_count_all__1\",\n    CASE WHEN group_set IN (2,3,4) THEN\n      \"R_NAME__2\"\n      END as \"R_NAME__2\",\n    COALESCE(LIST({\n      \"N_NAME\": \"N_NAME__3\", \n      \"by_flag\": \"by_flag__3\"}  ORDER BY  \"N_NAME__3\" asc NULLS LAST) FILTER (WHERE group_set=3),[]) as \"yyy__2\"\n  FROM __stage1\n  GROUP BY 1,3\n)\nSELECT\n  MAX(CASE WHEN group_set=1 THEN _count_all__1 END) as \"_count_all\",\n  COALESCE(LIST({\n    \"R_NAME\": \"R_NAME__2\", \n    \"yyy\": \"yyy__2\"}  ORDER BY  \"R_NAME__2\" asc NULLS LAST) FILTER (WHERE group_set=2),[]) as \"xxx\"\nFROM __stage2\nORDER BY 1 desc NULLS LAST\n    \n", 
+   "timings": [
+   {
+   "annotation": "optimizer", 
+   "timing": 0.004943
+   },
+   {
+   "annotation": "optimizer > column_lifetime", 
+   "timing": 0.000015
+   },
+   {
+   "annotation": "optimizer > common_aggregate", 
+   "timing": 0.000007
+   },
+   {
+   "annotation": "optimizer > common_subexpressions", 
+   "timing": 0.000019
+   },
+   {
+   "annotation": "optimizer > deliminator", 
+   "timing": 0.000001
+   },
+   {
+   "annotation": "optimizer > expression_rewriter", 
+   "timing": 0.000568
+   },
+   {
+   "annotation": "optimizer > filter_pullup", 
+   "timing": 0.000003
+   },
+   {
+   "annotation": "optimizer > filter_pushdown", 
+   "timing": 0.002816
+   },
+   {
+   "annotation": "optimizer > in_clause", 
+   "timing": 0.000069
+   },
+   {
+   "annotation": "optimizer > join_order", 
+   "timing": 0.000081
+   },
+   {
+   "annotation": "optimizer > regex_range", 
+   "timing": 0.000007
+   },
+   {
+   "annotation": "optimizer > reorder_filter", 
+   "timing": 0.000009
+   },
+   {
+   "annotation": "optimizer > statistics_propagation", 
+   "timing": 0.001295
+   },
+   {
+   "annotation": "optimizer > top_n", 
+   "timing": 0.000000
+   },
+   {
+   "annotation": "optimizer > unused_columns", 
+   "timing": 0.000034
+   },
+   {
+   "annotation": "physical_planner", 
+   "timing": 0.000134
+   },
+   {
+   "annotation": "physical_planner > column_binding", 
+   "timing": 0.000033
+   },
+   {
+   "annotation": "physical_planner > create_plan", 
+   "timing": 0.000077
+   },
+   {
+   "annotation": "physical_planner > resolve_types", 
+   "timing": 0.000011
+   },
+   {
+   "annotation": "planner", 
+   "timing": 0.002634
+   },
+   {
+   "annotation": "planner > binder", 
+   "timing": 0.002591
+   }
+   ],
+   "children": [
+    {
+      "name": "ORDER_BY",
+      "timing":0.000261,
+      "cardinality":1,
+      "extra_info": "max(CASE  WHEN (__stage2.group_set = 1) THEN (__stage2._count_all__1) ELSE NULL END) DESC",
+      "timings": [
+      ],
+      "children": [
+       {
+         "name": "PROJECTION",
+         "timing":0.000015,
+         "cardinality":1,
+         "extra_info": "_count_all\nxxx\n",
+         "timings": [
+         ],
+         "children": [
+          {
+            "name": "UNGROUPED_AGGREGATE",
+            "timing":0.000416,
+            "cardinality":1,
+            "extra_info": "max(#0)\nlist(#1, #2) FILTER (WHERE #3) Filter: #3",
+            "timings": [
+            ],
+            "children": [
+             {
+               "name": "PROJECTION",
+               "timing":0.000004,
+               "cardinality":6,
+               "extra_info": "CASE  WHEN (group_set = 1) THEN (_count_all__1) ELSE NULL END\nstruct_pack(R_NAME, yyy)\nR_NAME__2\ngroup_set = 2\n",
+               "timings": [
+               ],
+               "children": [
+                {
+                  "name": "PROJECTION",
+                  "timing":0.000024,
+                  "cardinality":6,
+                  "extra_info": "0\n_count_all__1\n2\nyyy__2\n",
+                  "timings": [
+                  ],
+                  "children": [
+                   {
+                     "name": "HASH_GROUP_BY",
+                     "timing":0.000564,
+                     "cardinality":6,
+                     "extra_info": "#0\n#1\nfirst(#2) FILTER (WHERE #3) Filter: #3\nlist(#4, #5) FILTER (WHERE #4) Filter: #4",
+                     "timings": [
+                     ],
+                     "children": [
+                      {
+                        "name": "PROJECTION",
+                        "timing":0.000009,
+                        "cardinality":31,
+                        "extra_info": "group_set\nR_NAME__2\n_count_all__1\n(_count_all__1 IS NOT NULL)\nstruct_pack(N_NAME, by_flag)\nN_NAME__3\ngroup_set = 3\n",
+                        "timings": [
+                        ],
+                        "children": [
+                         {
+                           "name": "PROJECTION",
+                           "timing":0.000018,
+                           "cardinality":31,
+                           "extra_info": "0\n_count_all__1\n2\n3\nby_flag__3\n",
+                           "timings": [
+                           ],
+                           "children": [
+                            {
+                              "name": "HASH_GROUP_BY",
+                              "timing":0.000781,
+                              "cardinality":31,
+                              "extra_info": "#0\n#1\n#2\nfirst(#3) FILTER (WHERE #3) Filter: #3\nlist(#5, #6) FILTER (WHERE #4) Filter: #4",
+                              "timings": [
+                              ],
+                              "children": [
+                               {
+                                 "name": "PROJECTION",
+                                 "timing":0.000024,
+                                 "cardinality":106,
+                                 "extra_info": "group_set\nR_NAME__2\nN_NAME__3\n_count_all__1\n(_count_all__1 IS NOT NULL)\nstruct_pack(L_RETURNFLAG, _count_all, _count, _Ratio)\n_count_all__4\ngroup_set = 4\n",
+                                 "timings": [
+                                 ],
+                                 "children": [
+                                  {
+                                    "name": "PROJECTION",
+                                    "timing":0.000047,
+                                    "cardinality":106,
+                                    "extra_info": "0\n_count_all__1\n2\n3\n4\n_count_all__4\n_count__4\n_Ratio__4\n",
+                                    "timings": [
+                                    ],
+                                    "children": [
+                                     {
+                                       "name": "FILTER",
+                                       "timing":0.000011,
+                                       "cardinality":106,
+                                       "extra_info": "0 != 0",
+                                       "timings": [
+                                       ],
+                                       "children": [
+                                        {
+                                          "name": "PROJECTION",
+                                          "timing":0.000001,
+                                          "cardinality":107,
+                                          "extra_info": "#0\n#1\n#2\n#3\n#4\n#5\n#6\n#7\n",
+                                          "timings": [
+                                          ],
+                                          "children": [
+                                           {
+                                             "name": "WINDOW",
+                                             "timing":0.000621,
+                                             "cardinality":107,
+                                             "extra_info": "max(CASE  WHEN (group_set = 3) THEN (count(1)) ELSE NULL END) OVER (PARTITION BY CASE  WHEN ((group_set.group_set IN (3, 4))) THEN (nation_0.\"N_NAME\") ELSE NULL END, CASE  WHEN ((group_set.group_set IN (2, 3, 4))) THEN (region_0.\"R_NAME\") ELSE NULL END)\nmax(CASE  WHEN (group_set = 3) THEN (count(1)) ELSE NULL END) OVER (PARTITION BY CASE  WHEN ((group_set.group_set IN (3, 4))) THEN (nation_0.\"N_NAME\") ELSE NULL END, CASE  WHEN ((group_set.group_set IN (2, 3, 4))) THEN (region_0.\"R_NAME\") ELSE NULL END)",
+                                             "timings": [
+                                             ],
+                                             "children": [
+                                              {
+                                                "name": "WINDOW",
+                                                "timing":0.000396,
+                                                "cardinality":107,
+                                                "extra_info": "max(CASE  WHEN (group_set = 0) THEN (count(1)) ELSE NULL END) OVER ()",
+                                                "timings": [
+                                                ],
+                                                "children": [
+                                                 {
+                                                   "name": "HASH_GROUP_BY",
+                                                   "timing":369.492813,
+                                                   "cardinality":107,
+                                                   "extra_info": "#0\n#1\n#2\n#3\ncount_star()",
+                                                   "timings": [
+                                                   ],
+                                                   "children": [
+                                                    {
+                                                      "name": "PROJECTION",
+                                                      "timing":133.752481,
+                                                      "cardinality":5398744680,
+                                                      "extra_info": "group_set\nR_NAME__2\nN_NAME__3\nL_RETURNFLAG__4\n",
+                                                      "timings": [
+                                                      ],
+                                                      "children": [
+                                                       {
+                                                         "name": "CROSS_PRODUCT",
+                                                         "timing":11.002836,
+                                                         "cardinality":5398744680,
+                                                         "extra_info": "",
+                                                         "timings": [
+                                                         ],
+                                                         "children": [
+                                                          {
+                                                            "name": "HASH_JOIN",
+                                                            "timing":46.100875,
+                                                            "cardinality":1079748936,
+                                                            "extra_info": "LEFT\nN_REGIONKEY = R_REGIONKEY\n",
+                                                            "timings": [
+                                                            ],
+                                                            "children": [
+                                                             {
+                                                               "name": "HASH_JOIN",
+                                                               "timing":45.804974,
+                                                               "cardinality":1079748936,
+                                                               "extra_info": "LEFT\nC_NATIONKEY = N_NATIONKEY\n",
+                                                               "timings": [
+                                                               ],
+                                                               "children": [
+                                                                {
+                                                                  "name": "HASH_JOIN",
+                                                                  "timing":74.301686,
+                                                                  "cardinality":1079748936,
+                                                                  "extra_info": "LEFT\nO_CUSTKEY = C_CUSTKEY\n",
+                                                                  "timings": [
+                                                                  ],
+                                                                  "children": [
+                                                                   {
+                                                                     "name": "HASH_JOIN",
+                                                                     "timing":120.651936,
+                                                                     "cardinality":1079748936,
+                                                                     "extra_info": "LEFT\nL_ORDERKEY = CAST(O_ORDERKEY AS BIGINT)\n",
+                                                                     "timings": [
+                                                                     ],
+                                                                     "children": [
+                                                                      {
+                                                                        "name": "PARQUET_SCAN",
+                                                                        "timing":73.740641,
+                                                                        "cardinality":1079748936,
+                                                                        "extra_info": "L_ORDERKEY\nL_RETURNFLAG",
+                                                                        "timings": [
+                                                                        ],
+                                                                        "children": [
+                                                                        ]
+                                                                      }
+,
+                                                                      {
+                                                                        "name": "PARQUET_SCAN",
+                                                                        "timing":0.546718,
+                                                                        "cardinality":15000000,
+                                                                        "extra_info": "O_ORDERKEY\nO_CUSTKEY",
+                                                                        "timings": [
+                                                                        ],
+                                                                        "children": [
+                                                                        ]
+                                                                      }
+                                                                     ]
+                                                                   }
+,
+                                                                   {
+                                                                     "name": "PARQUET_SCAN",
+                                                                     "timing":0.079016,
+                                                                     "cardinality":1500000,
+                                                                     "extra_info": "C_CUSTKEY\nC_NATIONKEY",
+                                                                     "timings": [
+                                                                     ],
+                                                                     "children": [
+                                                                     ]
+                                                                   }
+                                                                  ]
+                                                                }
+,
+                                                                {
+                                                                  "name": "PARQUET_SCAN",
+                                                                  "timing":0.000302,
+                                                                  "cardinality":25,
+                                                                  "extra_info": "N_NATIONKEY\nN_REGIONKEY\nN_NAME",
+                                                                  "timings": [
+                                                                  ],
+                                                                  "children": [
+                                                                  ]
+                                                                }
+                                                               ]
+                                                             }
+,
+                                                             {
+                                                               "name": "PARQUET_SCAN",
+                                                               "timing":0.000222,
+                                                               "cardinality":5,
+                                                               "extra_info": "R_REGIONKEY\nR_NAME",
+                                                               "timings": [
+                                                               ],
+                                                               "children": [
+                                                               ]
+                                                             }
+                                                            ]
+                                                          }
+,
+                                                          {
+                                                            "name": "PROJECTION",
+                                                            "timing":0.000000,
+                                                            "cardinality":5,
+                                                            "extra_info": "group_set\n",
+                                                            "timings": [
+                                                            ],
+                                                            "children": [
+                                                             {
+                                                               "name": "UNNEST",
+                                                               "timing":0.000010,
+                                                               "cardinality":5,
+                                                               "extra_info": "",
+                                                               "timings": [
+                                                               ],
+                                                               "children": [
+                                                                {
+                                                                  "name": "DUMMY_SCAN",
+                                                                  "timing":0.000001,
+                                                                  "cardinality":1,
+                                                                  "extra_info": "",
+                                                                  "timings": [
+                                                                  ],
+                                                                  "children": [
+                                                                  ]
+                                                                }
+                                                               ]
+                                                             }
+                                                            ]
+                                                          }
+                                                         ]
+                                                       }
+                                                      ]
+                                                    }
+                                                   ]
+                                                 }
+                                                ]
+                                              }
+                                             ]
+                                           }
+                                          ]
+                                        }
+                                       ]
+                                     }
+                                    ]
+                                  }
+                                 ]
+                               }
+                              ]
+                            }
+                           ]
+                         }
+                        ]
+                      }
+                     ]
+                   }
+                  ]
+                }
+               ]
+             }
+            ]
+          }
+         ]
+       }
+      ]
+    }
+   ]
+}
