@@ -1,0 +1,36 @@
+
+source:lineitem is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/lineitem/*.parquet')
+{ 
+
+  join_one: orders is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/orders.parquet') on orders.O_ORDERKEY = L_ORDERKEY
+  join_one: customer is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/customer.parquet') on customer.C_CUSTKEY = orders.O_CUSTKEY
+  join_one: nation is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/nation.parquet') on nation.N_NATIONKEY = customer.C_NATIONKEY
+  join_one: region is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/region.parquet') on  region.R_REGIONKEY =nation.N_REGIONKEY
+
+  measure : _count is count()
+              _count_all is all(_count)
+              _Ratio is _count/_count_all
+
+
+Query : by_flag is {
+    group_by : L_RETURNFLAG
+    aggregate :_count_all,_count,_Ratio
+}
+
+Query : by_shipmod_flag is {
+    aggregate :_count_all
+          nest : xxx is {
+              group_by: region.R_NAME
+              nest : yyy is {
+                    group_by :nation.N_NAME
+                        nest: by_flag
+}
+
+}
+  
+}
+
+
+
+
+}
