@@ -1,30 +1,30 @@
 -- source data at https://drive.google.com/drive/folders/1mZC3NuPBZC4mjP3_kH18c9fLrv8ME7RU
 -- Malloy file require a Visual studio extension  https://marketplace.visualstudio.com/items?itemName=malloydata.malloy-vscode
 -- Lineitem parquet file contains 59 Million records, you can just duplicate the file to increase the data size for testing.
-source:lineitem is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/lineitem/*.parquet')
+source:lineitem is table('test-187010.TPCH.lineitem')
 { 
 
-  join_one: orders is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/orders.parquet')
+  join_one: orders is table('test-187010.TPCH.orders')
                     on orders.O_ORDERKEY = L_ORDERKEY
-  join_one: customer is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/customer.parquet')
+  join_one: customer is table('test-187010.TPCH.customer')
                      on customer.C_CUSTKEY = orders.O_CUSTKEY
-  join_one: nation is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/nation.parquet')
+  join_one: nation is table('test-187010.TPCH.nation')
                     on nation.N_NATIONKEY = customer.C_NATIONKEY
-  join_one: region is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/region.parquet')
+  join_one: region is table('test-187010.TPCH.region')
                     on  region.R_REGIONKEY =nation.N_REGIONKEY
-  join_one: partsupp is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/partsupp.parquet')
+  join_one: partsupp is table('test-187010.TPCH.partsupp')
                     on partsupp.PS_PARTKEY = L_PARTKEY and partsupp.PS_SUPPKEY = L_SUPPKEY
-  join_one: supplier is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/supplier.parquet')
+  join_one: supplier is table('test-187010.TPCH.supplier')
                     on supplier.S_SUPPKEY = partsupp.PS_SUPPKEY 
-  join_one: part is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/part.parquet')
+  join_one: part is table('test-187010.TPCH.part')
                     on part.P_PARTKEY = partsupp.PS_PARTKEY
-  join_one: nation_supplier is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/nation.parquet')
+  join_one: nation_supplier is table('test-187010.TPCH.nation')
                     on nation_supplier.N_NATIONKEY = supplier.S_NATIONKEY
-  join_one: region_supplier is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/region.parquet')
+  join_one: region_supplier is table('test-187010.TPCH.region')
                     on  region_supplier.R_REGIONKEY =nation_supplier.N_REGIONKEY
   
   
-  dimension : Shipdate_year is l_shipdate.year
+  dimension : Shipdate_year is L_SHIPDATE.year
               
 
   measure :   _count is count()
@@ -39,6 +39,11 @@ source:lineitem is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Par
               avg_disc is AVG(L_DISCOUNT) 
 
 
+Query : by_year is {
+    group_by : Shipdate_year
+    aggregate :Sold_BY_Year is sum_qty/all(sum_qty)
+                   }
+
 Query: TPCH1 is {
     
     group_by : L_RETURNFLAG,
@@ -49,10 +54,6 @@ Query: TPCH1 is {
 Query : by_flag is {
     group_by : L_RETURNFLAG
     aggregate :_count_all,_count,_Ratio
-                   }
-Query : by_year is {
-    group_by : Shipdate_year
-    aggregate :Sold_BY_Year is sum_qty/all(sum_qty)
                    }
 
 Query : by_shipmod_flag is {
