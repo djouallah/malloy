@@ -1,6 +1,7 @@
 -- source data at https://drive.google.com/drive/folders/1mZC3NuPBZC4mjP3_kH18c9fLrv8ME7RU
 -- Malloy file require a Visual studio extension  https://marketplace.visualstudio.com/items?itemName=malloydata.malloy-vscode
 -- Lineitem parquet file contains 59 Million records, you can just duplicate the file to increase the data size for testing.
+
 source:lineitem is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/lineitem/*.parquet')
 { 
 
@@ -8,25 +9,22 @@ source:lineitem is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Par
                     on orders.O_ORDERKEY = L_ORDERKEY
   join_one: customer is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/customer.parquet')
                      on customer.C_CUSTKEY = orders.O_CUSTKEY
-  join_one: nation is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/nation.parquet')
-                    on nation.N_NATIONKEY = customer.C_NATIONKEY
-  join_one: region is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/region.parquet')
-                    on  region.R_REGIONKEY =nation.N_REGIONKEY
+  join_one: customer_nation is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/nation.parquet')
+                    on customer_nation.N_NATIONKEY = customer.C_NATIONKEY
+  join_one: customer_region is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/region.parquet')
+                    on  customer_region.R_REGIONKEY =customer_nation.N_REGIONKEY
   join_one: partsupp is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/partsupp.parquet')
                     on partsupp.PS_PARTKEY = L_PARTKEY and partsupp.PS_SUPPKEY = L_SUPPKEY
   join_one: supplier is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/supplier.parquet')
                     on supplier.S_SUPPKEY = partsupp.PS_SUPPKEY 
   join_one: part is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/part.parquet')
                     on part.P_PARTKEY = partsupp.PS_PARTKEY
-  join_one: nation_supplier is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/nation.parquet')
-                    on nation_supplier.N_NATIONKEY = supplier.S_NATIONKEY
-  join_one: region_supplier is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/region.parquet')
-                    on  region_supplier.R_REGIONKEY =nation_supplier.N_REGIONKEY
-  
-  
-  dimension : Shipdate_year is l_shipdate.year
-              
+  join_one: supplier_nation is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/nation.parquet')
+                    on supplier_nation.N_NATIONKEY = supplier.S_NATIONKEY
+  join_one: supplier_region is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Parquet/region.parquet')
+                    on  supplier_region.R_REGIONKEY =supplier_nation.N_REGIONKEY
 
+  dimension : Shipdate_year is l_shipdate.year
   measure :   _count is count()
               _count_all is all(_count)
               _Ratio is _count/_count_all
@@ -37,14 +35,28 @@ source:lineitem is table('duckdb:/Users/mimoune.djouallah/Desktop/TPC-H-SF10/Par
               avg_qty is AVG(L_QUANTITY) 
               avg_price is AVG(L_EXTENDEDPRICE) 
               avg_disc is AVG(L_DISCOUNT) 
+              count_customers is count( distinct customer.C_CUSTKEY)
 
-
+Query: custoners_bought_something is {  
+    aggregate: count_customers
+                 }
+Query: Top_customers_Qty is {  
+     top :5
+     group_by : customer.C_NAME
+     aggregate: sum_qty
+    
+                 }
+Query: sum_Quantity_by_Customer_region is {  
+     group_by : customer_region.R_NAME, total is supplier_region.R_NAME
+     aggregate: sum_qty,sum_qty_total is all(sum_qty)
+     limit : 30
+                 }
 Query: TPCH1 is {
     
     group_by : L_RETURNFLAG,
                L_LINESTATUS
     aggregate: sum_qty,sum_base_price,sum_disc_price,sum_charge,
-               avg_qty,avg_price,avg_disc,_count,_count_all
+               avg_qty,avg_price,avg_disc,_count
                  }
 Query : by_flag is {
     group_by : L_RETURNFLAG
@@ -58,9 +70,9 @@ Query : by_year is {
 Query : by_shipmod_flag is {
     aggregate :_count_all
           nest : xxx is {
-              group_by: region.R_NAME
+              group_by: customer_region.R_NAME
               nest : yyy is {
-                    group_by :nation.N_NAME
+                    group_by :customer_nation.N_NAME
                         nest: by_flag
                              }
 
@@ -68,11 +80,11 @@ Query : by_shipmod_flag is {
   
                             }
 
-Query : by_Country_Country_supplier is {
-    group_by : Supplier_Country is nation_supplier.N_NAME
+Query : by_Country_supplier is {
+    group_by : Supplier_Country is supplier_nation.N_NAME
     aggregate :sum_qty
     limit : 30
-                   }
+                              }
 
 
 }
