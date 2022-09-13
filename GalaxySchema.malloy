@@ -1,75 +1,59 @@
 -- defining the data as a small reproducible example
-sql: actual_source is ||
-        SELECT "red" as color,"Gernamy" as state,1 as Qty_sold,cast("2021-01-01" as date) as date
-        UNION ALL SELECT "red", "USA",1,"2021-01-04" 
-        UNION ALL SELECT "black", "Japan",1,"2021-01-02" 
-        UNION ALL SELECT "black", "China",1,"2021-01-02" 
-      ;;
-
-sql: dim1_source_ is ||
-        SELECT "red" as color, "Vendor1" as Vendor
+sql: color_source_ is ||
+        SELECT           "red" as color, "Vendor1" as Vendor
         UNION ALL SELECT "black", "Vendor2"
         UNION ALL SELECT "yellow", "Vendor3"
       ;;
-
-sql: dim2_source_ is ||
-        SELECT "Gernamy" as state,"europe" as continent
+sql: state_source_ is ||
+        SELECT           "Gernamy" as state,"europe" as continent
         UNION ALL SELECT "USA", "america"
         UNION ALL SELECT "Japan", "asia"
         UNION ALL SELECT "canada", "america"
         UNION ALL SELECT "Tunisia", "africa"
         UNION ALL SELECT "China", "asia"
+        UNION ALL SELECT "India", "asia"
       ;;
-
 sql: budget_source is ||
-        SELECT "Gernamy" as state,10 as Qty_Budget
+        SELECT           "Gernamy" as state,10 as Qty_Budget
         UNION ALL SELECT "USA",19
         UNION ALL SELECT  "Japan",12
         UNION ALL SELECT  "canada",20 
         UNION ALL SELECT  "Tunisia",30 
       ;;
+sql: actual_source is ||
+        SELECT           "red" as color,"Gernamy" as state,1 as Qty_sold,cast("2021-01-01" as date) as date
+        UNION ALL SELECT "red", "USA",1,"2021-01-04" 
+        UNION ALL SELECT "black", "Japan",1,"2021-01-02" 
+        UNION ALL SELECT "black", "China",1,"2021-01-02" 
+      ;;
 source: Actual is from_sql(actual_source)
 {
-  join_one: dim_color is from_sql(dim1_source_){
-  primary_key: color
-                                }
-                             with color
-  join_one: dim_state is from_sql(dim2_source_){
-                             primary_key: state
-                          }
-            with state
+  join_one: dim_color is from_sql(color_source_) {primary_key: color } with color
+  join_one: dim_state is from_sql(state_source_) { primary_key: state } with state
   measure : Quantity is Qty_sold.sum()
-            red is Quantity { where:  color = 'red' } 
-            black is Quantity { where:  color = 'BLACK' } 
-            red_or_black is Quantity { where:  color = 'red' or  color = 'black'}
-  
 }
 
 source: Budget is from_sql(budget_source)
 {
-  
-  join_one: dim_state is from_sql(dim2_source_){
-                             primary_key: state
-                          }
-            with state
-  measure : Budget is Qty_Budget.sum()  
-}
-
-Query: Actual_by_state is Actual -> {
-  aggregate:Quantity
-  group_by : dim_state.state
+  join_one: dim_state is from_sql(state_source_) {primary_key: state } with state
+             measure : _Budget is Qty_Budget.sum()  
 }
 
 Query: Budget_by_state is Budget -> {
-  aggregate:Budget
+  aggregate:_Budget
   group_by : dim_state.state
 }
 
-
-query: merge_results is from_sql(dim2_source_) {
-   join_one: q2 is from(->Budget_by_state) with state
-   join_one: q3 is from(->Actual_by_state) with state
-   measure : progress is q3.Quantity/q2.Budget
-} ->{
-  project: state, q2.Budget,q3.Quantity,progress
+Query: Actual_by_state is Actual ->{
+  aggregate:Quantity
+  group_by : dim_state.state
 }
+query: merge_results is from_sql(state_source_) {
+   join_one: q2 is from(->Budget_by_state ) with state
+   join_one: q3 is from(->Actual_by_state) with state
+} ->{
+  
+  group_by : continent
+  aggregate: QTY_Budget is sum(q2._Budget),QTY_Sold is sum(q3.Quantity)
+}
+
