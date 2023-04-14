@@ -5,6 +5,7 @@ sql: color_source_ is {
         UNION ALL SELECT 'black', 'Vendor2'
         UNION ALL SELECT 'yellow', 'Vendor3'
         """
+        connection: "duckdb"
         }
 sql: state_source_ is {
         select: """
@@ -16,6 +17,7 @@ sql: state_source_ is {
         UNION ALL SELECT 'China', 'asia'
         UNION ALL SELECT 'India', 'asia'
       """
+      connection: "duckdb"
         }
 sql: budget_source is {
         select: """
@@ -25,6 +27,7 @@ sql: budget_source is {
         UNION ALL SELECT  'canada',20 
         UNION ALL SELECT  'Tunisia',30 
       """
+      connection: "duckdb"
         }
 sql: actual_source is {
         select: """
@@ -33,6 +36,7 @@ sql: actual_source is {
         UNION ALL SELECT 'black', 'Japan',1,'2021-01-02' 
         UNION ALL SELECT 'black', 'China',1,'2021-01-02' 
       """
+      connection: "duckdb"
         }
 source: Actual is from_sql(actual_source)
 {
