@@ -1,36 +1,44 @@
 -- defining the data as a small reproducible example
-sql: color_source_ is ||
-        SELECT           "red" as color, "Vendor1" as Vendor
-        UNION ALL SELECT "black", "Vendor2"
-        UNION ALL SELECT "yellow", "Vendor3"
-      ;;
-sql: state_source_ is ||
-        SELECT           "Gernamy" as state,"europe" as continent
-        UNION ALL SELECT "USA", "america"
-        UNION ALL SELECT "Japan", "asia"
-        UNION ALL SELECT "canada", "america"
-        UNION ALL SELECT "Tunisia", "africa"
-        UNION ALL SELECT "China", "asia"
-        UNION ALL SELECT "India", "asia"
-      ;;
-sql: budget_source is ||
-        SELECT           "Gernamy" as state,10 as Qty_Budget
-        UNION ALL SELECT "USA",19
-        UNION ALL SELECT  "Japan",12
-        UNION ALL SELECT  "canada",20 
-        UNION ALL SELECT  "Tunisia",30 
-      ;;
-sql: actual_source is ||
-        SELECT           "red" as color,"Gernamy" as state,1 as Qty_sold,cast("2021-01-01" as date) as date
-        UNION ALL SELECT "red", "USA",1,"2021-01-04" 
-        UNION ALL SELECT "black", "Japan",1,"2021-01-02" 
-        UNION ALL SELECT "black", "China",1,"2021-01-02" 
-      ;;
+sql: color_source_ is {
+        select: """
+        SELECT           'red' as color, 'Vendor1' as Vendor
+        UNION ALL SELECT 'black', 'Vendor2'
+        UNION ALL SELECT 'yellow', 'Vendor3'
+        """
+        }
+sql: state_source_ is {
+        select: """
+        SELECT           'Gernamy' as state,'europe' as continent
+        UNION ALL SELECT 'USA', 'america'
+        UNION ALL SELECT 'Japan', 'asia'
+        UNION ALL SELECT 'canada', 'america'
+        UNION ALL SELECT 'Tunisia', 'africa'
+        UNION ALL SELECT 'China', 'asia'
+        UNION ALL SELECT 'India', 'asia'
+      """
+        }
+sql: budget_source is {
+        select: """
+        SELECT           'Gernamy' as state,10 as Qty_Budget
+        UNION ALL SELECT 'USA',19
+        UNION ALL SELECT  'Japan',12
+        UNION ALL SELECT  'canada',20 
+        UNION ALL SELECT  'Tunisia',30 
+      """
+        }
+sql: actual_source is {
+        select: """
+        SELECT           'red' as color,'Gernamy' as state,1 as Qty_sold,cast('2021-01-01' as date) as date
+        UNION ALL SELECT 'red', 'USA',1,'2021-01-04' 
+        UNION ALL SELECT 'black', 'Japan',1,'2021-01-02' 
+        UNION ALL SELECT 'black', 'China',1,'2021-01-02' 
+      """
+        }
 source: Actual is from_sql(actual_source)
 {
   join_one: dim_color is from_sql(color_source_) {primary_key: color } with color
   join_one: dim_state is from_sql(state_source_) { primary_key: state } with state
-  measure : Quantity is Qty_sold.sum()
+                                             measure : Quantity is Qty_sold.sum()
 }
 
 source: Budget is from_sql(budget_source)
